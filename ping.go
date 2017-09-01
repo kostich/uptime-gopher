@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"golang.org/x/net/idna"
 )
 
 // Checks if ping(1) tool is available.
@@ -35,9 +37,17 @@ func pingHost(host string, ch chan<- string) {
 	// we just need the domain
 	host = justDomain(host)
 
-	out, err := exec.Command("ping", host, "-c 4", "-w 10").Output()
+	// transform domain to punnycode
+	punnyStruct := idna.New()
+	punnyHost, err := punnyStruct.ToASCII(host)
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, state: error checking host: %v", host, err)
+		ch <- fmt.Sprintf("host: %v, state: error determining punnycode for host: %v", host, err)
+		return
+	}
+
+	out, err := exec.Command("ping", punnyHost, "-c4", "-w10").CombinedOutput()
+	if err != nil {
+		ch <- fmt.Sprintf("host: %v, state: error checking host: %v: %v", host, string(out), err)
 		return
 	}
 	if strings.Contains(string(out), "Destination Host Unreachable") {
