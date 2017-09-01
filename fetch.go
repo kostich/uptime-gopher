@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Fetch a given host and return a status based on the response
+// Fetch a given host and return a status based on the response.
 func fetchHost(host string, response int, ch chan<- string) {
 	// check for protocol, if not defined, use http
 	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {

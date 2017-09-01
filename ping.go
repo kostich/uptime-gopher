@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Checks if ping(1) tool is available.
 func pingAvailable() bool {
 	cmd := exec.Command("which", "ping")
 	cmd.Start()
@@ -16,7 +17,7 @@ func pingAvailable() bool {
 	return true
 }
 
-// ping the given host via ping(1)
+// Ping the given host via ping(1).
 func pingHost(host string, ch chan<- string) {
 	// first check if we have nmap on the system
 	if !pingAvailable() {

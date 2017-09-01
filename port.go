@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/idna"
 )
 
+// Checks if nmap(1) tool is available.
 func nmapAvailable() bool {
 	cmd := exec.Command("which", "nmap")
 	cmd.Start()
@@ -19,7 +20,7 @@ func nmapAvailable() bool {
 	return true
 }
 
-// Check if the given port is open on a given host, via nmap(1)
+// Check if the given port is open on a given host, via nmap(1).
 func portCheckHost(host string, port int, ch chan<- string) {
 	// first check if we have nmap on the system
 	if !nmapAvailable() {

@@ -8,6 +8,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+// Checks if a HTML page on a given post contains <meta name="keywords"> with
+// content which contains keyword.
 func keywordHost(host, keyword string, ch chan<- string) {
 	// check for protocol, if not defined use http
 	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {
