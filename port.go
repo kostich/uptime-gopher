@@ -45,9 +45,9 @@ func portCheckHost(host string, port int, ch chan<- string) {
 		ch <- fmt.Sprintf("host: %v, port: %v, state: error determining punnycode for host: %v", host, port, err)
 		return
 	}
-	out, err := exec.Command("nmap", "-sT", "-p", strPort, punnyHost).Output()
+	out, err := exec.Command("nmap", "-sT", "-p", strPort, punnyHost).CombinedOutput()
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: error nmaping: %v", host, port, err)
+		ch <- fmt.Sprintf("host: %v, port: %v, state: error nmaping: %v: %v", host, port, string(out), err)
 		return
 	}
 
