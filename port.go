@@ -9,8 +9,26 @@ import (
 	"golang.org/x/net/idna"
 )
 
+func nmapAvailable() bool {
+	cmd := exec.Command("which", "nmap")
+	cmd.Start()
+	err := cmd.Wait()
+	if err != nil {
+		return false
+	}
+	fmt.Println(err)
+	return true
+}
+
 // Check if the given port is open on a given host, via nmap(1)
 func portCheckHost(host string, port int, ch chan<- string) {
+	// first check if we have nmap on the system
+	if !nmapAvailable() {
+		ch <- fmt.Sprintf("host: %v, port: %v, state: nmap tool not available", host, port)
+		return
+	}
+
+	// trim the protocol from the host, if any
 	if strings.HasPrefix(host, "https://") {
 		host = strings.TrimPrefix(host, "https://")
 	} else if strings.HasPrefix(host, "http://") {
