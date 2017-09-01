@@ -6,8 +6,24 @@ import (
 	"strings"
 )
 
+func pingAvailable() bool {
+	cmd := exec.Command("which", "ping")
+	cmd.Start()
+	err := cmd.Wait()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 // ping the given host via ping(1)
 func pingHost(host string, ch chan<- string) {
+	// first check if we have nmap on the system
+	if !pingAvailable() {
+		ch <- fmt.Sprintf("host: %v, state: ping tool not available", host)
+		return
+	}
+
 	// we don't need the protocol to ping the host
 	if strings.HasPrefix(host, "https://") {
 		host = strings.TrimPrefix(host, "https://")
