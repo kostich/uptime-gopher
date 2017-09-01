@@ -19,7 +19,7 @@ type host struct {
 	Ports        []int    `json:"ports"`
 }
 
-// Check if all the requirements are satisfied
+// Check if all the requirements are satisfied.
 func checkReqs() error {
 	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
 		return fmt.Errorf("config.json file doesn't exist")
@@ -28,7 +28,7 @@ func checkReqs() error {
 	return nil
 }
 
-// Returns the full domain name, without protocol and path
+// Returns the full domain name, without protocol and path.
 func justDomain(url string) string {
 	domain := ""
 	if strings.HasPrefix(url, "https://") {
