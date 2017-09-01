@@ -16,7 +16,6 @@ func nmapAvailable() bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println(err)
 	return true
 }
 
