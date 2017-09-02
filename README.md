@@ -10,7 +10,11 @@ You will need the Go compiler installed. Git clone this repository, `cd` to it a
 
 ## Configuration
 
-Copy the `hosts.json.example` to `hosts.json`. Config file is very self-explanatory.
+To configure the program, copy `config.json.example` to `config.json` and fill the missing values. 
+
+To define the hosts you want to check, copy `hosts.json.example` to `hosts.json` and add your hosts. 
+
+The config file and the hosts config file are very self-explanatory.
 
 ## Usage
 Go to the build directory and execute the `./uptime-gopher` binary.

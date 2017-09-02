@@ -68,6 +68,26 @@ func main() {
 		os.Exit(1)
 	}
 
+	// we read the program config file
+	conf, err := ioutil.ReadFile("./conf.json")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading program config: %v\n", err)
+		os.Exit(1)
+	}
+	var dbConf dbParams
+	err = json.Unmarshal(conf, &dbConf)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading program config: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Check database connection
+	err = checkDbConn(&dbConf)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error connecting to db: %v\n", err)
+		os.Exit(1)
+	}
+
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
 	ping := make(chan string)
