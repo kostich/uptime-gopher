@@ -56,13 +56,13 @@ func main() {
 		os.Exit(1)
 	}
 	// We read the hosts config file
-	conf, err := ioutil.ReadFile("./hosts.json")
+	hostConf, err := ioutil.ReadFile("./hosts.json")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading hosts config: %v\n", err)
 		os.Exit(1)
 	}
 	var hosts []host
-	json.Unmarshal(conf, &hosts)
+	json.Unmarshal(hostConf, &hosts)
 
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
