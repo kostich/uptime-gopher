@@ -62,7 +62,11 @@ func main() {
 		os.Exit(1)
 	}
 	var hosts []host
-	json.Unmarshal(hostConf, &hosts)
+	err = json.Unmarshal(hostConf, &hosts)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading hosts config: %v\n", err)
+		os.Exit(1)
+	}
 
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
