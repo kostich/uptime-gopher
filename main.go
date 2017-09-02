@@ -21,8 +21,8 @@ type host struct {
 
 // Check if all the requirements are satisfied.
 func checkReqs() error {
-	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
-		return fmt.Errorf("config.json file doesn't exist")
+	if _, err := os.Stat("hosts.json"); os.IsNotExist(err) {
+		return fmt.Errorf("hosts.json file doesn't exist")
 	}
 
 	return nil
@@ -55,10 +55,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "uptime-gopher: requirements not satisfied: %v\n", err)
 		os.Exit(1)
 	}
-	// We read the config
-	conf, err := ioutil.ReadFile("./config.json")
+	// We read the hosts config file
+	conf, err := ioutil.ReadFile("./hosts.json")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error reading hosts config: %v\n", err)
 		os.Exit(1)
 	}
 	var hosts []host
