@@ -36,8 +36,24 @@ func checkDbConn(params *dbParams) error {
 }
 
 // Checks if required tables exist in the database.
-func checkTables() {
-	return
+func checkTables(params *dbParams) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	//stmt := "SHOW TABLE STATUS FROM `" + params.Name + "`"
+	//rows, err := db.Query(stmt)
+	//if err != nil {
+	//	return fmt.Errorf("can't get data from db: %v", err)
+	//}
+	// TODO: check rows and see if all the tables are there and that the
+	// table structure is correct.
+
+	return nil
 }
 
 // Creates required tables in the database.

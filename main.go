@@ -88,6 +88,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Check if tables exist in the db
+	err = checkTables(&dbConf)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: error checking tables: %v\n", err)
+		os.Exit(1)
+	}
+
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
 	ping := make(chan string)
