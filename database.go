@@ -1,11 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"reflect"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 type dbParams struct {
@@ -20,14 +21,15 @@ type dbParams struct {
 // parameters defined in conf.json file.
 func checkDbConn(params *dbParams) error {
 	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
-		strconv.Itoa(params.Port) + ")/" + params.Name
-	db, err := sql.Open("mysql", dsn)
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("can't get db handle: %v", err)
 	}
 	defer db.Close()
 
-	err = db.Ping()
+	err = db.DB().Ping()
 	if err != nil {
 		return fmt.Errorf("can't open db conn: %v", err)
 	}
@@ -38,20 +40,46 @@ func checkDbConn(params *dbParams) error {
 // Checks if required tables exist in the database.
 func checkTables(params *dbParams) error {
 	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
-		strconv.Itoa(params.Port) + ")/" + params.Name
-	db, err := sql.Open("mysql", dsn)
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
 	if err != nil {
 		return fmt.Errorf("can't get db handle: %v", err)
 	}
 	defer db.Close()
 
-	//stmt := "SHOW TABLE STATUS FROM `" + params.Name + "`"
-	//rows, err := db.Query(stmt)
-	//if err != nil {
-	//	return fmt.Errorf("can't get data from db: %v", err)
-	//}
-	// TODO: check rows and see if all the tables are there and that the
-	// table structure is correct.
+	stmt := "SHOW TABLE STATUS FROM `" + params.Name + "`;"
+	rows, err := db.Raw(stmt).Rows()
+	defer rows.Close()
+
+	// will store all results from the statement above
+	type tablesResult struct {
+		name, engine string
+		version      int
+		rowFormat    string
+		rows, avgRowLen, dataLen, maxDataLen,
+		indexLen, dataFree, aInc int64
+		createTime, updTime, checkTime, collation,
+		checksum, creatOptions, comment string
+	}
+
+	// but we just need the names of the tables
+	var tableNames []string
+	for rows.Next() {
+		// SHOW TABLE STATUS returns rows with 18 fields
+		var tables tablesResult
+		rows.Scan(&tables.name, &tables.engine, &tables.version, &tables.rowFormat,
+			&tables.rows, &tables.avgRowLen, &tables.dataLen, &tables.maxDataLen,
+			&tables.indexLen, &tables.dataFree, &tables.aInc, &tables.createTime,
+			&tables.updTime, &tables.checkTime, &tables.collation, &tables.checksum,
+			&tables.creatOptions, &tables.comment)
+		tableNames = append(tableNames, tables.name)
+	}
+
+	requiredTables := []string{"keywords", "pings", "ports", "web_requests"}
+	if !reflect.DeepEqual(tableNames, requiredTables) {
+		return fmt.Errorf("required db tables do not exist")
+	}
 
 	return nil
 }
