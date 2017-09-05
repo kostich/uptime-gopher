@@ -5,9 +5,17 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/net/idna"
 )
+
+type portResp struct {
+	datetime time.Time
+	host     string
+	port     int
+	comment  string
+}
 
 // Checks if nmap(1) tool is available.
 func nmapAvailable() bool {
@@ -21,10 +29,11 @@ func nmapAvailable() bool {
 }
 
 // Check if the given port is open on a given host, via nmap(1).
-func portCheckHost(host string, port int, ch chan<- string) {
+func portCheckHost(host string, port int, ch chan<- *portResp) {
 	// first check if we have nmap on the system
 	if !nmapAvailable() {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: nmap tool not available", host, port)
+		r := portResp{time.Now(), host, port, "nmap tool not available"}
+		ch <- &r
 		return
 	}
 
@@ -42,24 +51,31 @@ func portCheckHost(host string, port int, ch chan<- string) {
 	punnyStruct := idna.New()
 	punnyHost, err := punnyStruct.ToASCII(host)
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: error determining punnycode for host: %v", host, port, err)
+		r := portResp{time.Now(), host, port, fmt.Sprintf("can't determine punnycode for host, %v", err)}
+		ch <- &r
 		return
 	}
 	out, err := exec.Command("nmap", "-sT", "-p", strPort, punnyHost).CombinedOutput()
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: error nmaping: %v: %v", host, port, string(out), err)
+		r := portResp{time.Now(), host, port, fmt.Sprintf("error nmaping, %v, %v", string(out), err)}
+		ch <- &r
 		return
 	}
 
 	if strings.Contains(string(out), "open") {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: OPEN", host, port)
+		r := portResp{time.Now(), host, port, "OPEN"}
+		ch <- &r
 	} else if strings.Contains(string(out), "closed") {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: CLOSED", host, port)
+		r := portResp{time.Now(), host, port, "CLOSED"}
+		ch <- &r
 	} else if strings.Contains(string(out), "filtered") {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: FILTERED", host, port)
+		r := portResp{time.Now(), host, port, "FILTERED"}
+		ch <- &r
 	} else if strings.Contains(string(out), "resolve") {
-		ch <- fmt.Sprintf("host: %v, state: UNRESOLVABLE", host)
+		r := portResp{time.Now(), host, port, "UNRESOLVABLE"}
+		ch <- &r
 	} else {
-		ch <- fmt.Sprintf("host: %v, port: %v, state: UNKNOWN", host, port)
+		r := portResp{time.Now(), host, port, fmt.Sprintf("UNKNOWN, %v", string(out))}
+		ch <- &r
 	}
 }

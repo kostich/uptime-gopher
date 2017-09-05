@@ -39,7 +39,6 @@ type portsTable struct {
 	Datetime time.Time
 	Host     string
 	Port     int
-	state    bool
 	Comment  string
 }
 
@@ -152,8 +151,21 @@ func logKeyword(params *dbParams, data *keywordResp) error {
 }
 
 // Logs the data about the port check to the database.
-func logPort() {
-	return
+func logPort(params *dbParams, data *portResp) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	nr := portsTable{Datetime: data.datetime, Host: data.host,
+		Port: data.port, Comment: data.comment}
+	db.Create(&nr)
+
+	return nil
 }
 
 // Logs the data about the request check to the database.

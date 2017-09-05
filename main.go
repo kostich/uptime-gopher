@@ -99,7 +99,7 @@ func main() {
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
 	ping := make(chan *pingResp)
-	ports := make(chan string)
+	ports := make(chan *portResp)
 	keywords := make(chan *keywordResp)
 	for _, h := range hosts {
 		if h.Ping {
@@ -145,7 +145,13 @@ func main() {
 	for _, h := range hosts {
 		if len(h.Ports) != 0 {
 			for i := len(h.Ports); i > 0; i-- {
-				fmt.Printf("[ PORT ] %s\n", <-ports)
+				r := <-ports
+				err = logPort(&dbConf, r)
+				if err != nil {
+					fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: error: %v\n",
+						r.datetime, r.host, r.port, err)
+				}
+				fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: %v\n", r.datetime, r.host, r.port, r.comment)
 			}
 		}
 	}
