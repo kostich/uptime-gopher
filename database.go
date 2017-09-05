@@ -23,6 +23,7 @@ type keywordsTable struct {
 	Host     string
 	Keyword  string
 	State    bool
+	Comment  string
 }
 
 type pingsTable struct {
@@ -39,6 +40,7 @@ type portsTable struct {
 	Host     string
 	Port     int
 	state    bool
+	Comment  string
 }
 
 type webRequestsTable struct {
