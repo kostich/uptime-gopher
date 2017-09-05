@@ -62,10 +62,10 @@ func pingHost(host string, ch chan<- *pingResp) {
 		return
 	}
 	if strings.Contains(string(out), "Destination Host Unreachable") {
-		r := pingResp{time.Now(), host, false, "offline"}
+		r := pingResp{time.Now(), host, false, ""}
 		ch <- &r
 	} else {
-		r := pingResp{time.Now(), host, true, "online"}
+		r := pingResp{time.Now(), host, true, ""}
 		ch <- &r
 	}
 }
