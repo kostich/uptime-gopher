@@ -50,6 +50,8 @@ type webRequestsTable struct {
 	Comment     string
 }
 
+// Checks if it's possible to establish connection to the database with
+// parameters defined in conf.json file.
 func checkDbConn(params *dbParams) error {
 	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
 		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
