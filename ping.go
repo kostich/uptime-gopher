@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os/exec"
 	"strings"
 	"time"
@@ -49,7 +50,7 @@ func pingHost(host string, ch chan<- *pingResp) {
 	punnyStruct := idna.New()
 	punnyHost, err := punnyStruct.ToASCII(host)
 	if err != nil {
-		r := pingResp{time.Now(), host, false, "can't determine punnycode for host"}
+		r := pingResp{time.Now(), host, false, fmt.Sprintf("can't determine punnycode for host, %v", err)}
 		ch <- &r
 		return
 	}
