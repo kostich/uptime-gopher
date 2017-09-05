@@ -10,7 +10,9 @@ You will need the Go compiler installed. Git clone this repository, `cd` to it a
 
 ## Configuration
 
-To configure the program, copy `config.json.example` to `config.json` and fill the missing values. 
+To configure the program, copy `config.json.example` to `config.json` and fill the missing MySQL values.
+
+You will need an MySQL database and a MySQL user with ALL privileges on the given database.
 
 To define the hosts you want to check, copy `hosts.json.example` to `hosts.json` and add your hosts. 
 
