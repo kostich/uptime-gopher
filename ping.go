@@ -1,12 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"golang.org/x/net/idna"
 )
+
+type pingResp struct {
+	datetime time.Time
+	host     string
+	state    bool
+	comment  string
+}
 
 // Checks if ping(1) tool is available.
 func pingAvailable() bool {
@@ -20,10 +27,11 @@ func pingAvailable() bool {
 }
 
 // Ping the given host via ping(1).
-func pingHost(host string, ch chan<- string) {
+func pingHost(host string, ch chan<- *pingResp) {
 	// first check if we have nmap on the system
 	if !pingAvailable() {
-		ch <- fmt.Sprintf("host: %v, state: ping tool not available", host)
+		r := pingResp{time.Now(), host, false, "ping tool not available"}
+		ch <- &r
 		return
 	}
 
@@ -41,18 +49,22 @@ func pingHost(host string, ch chan<- string) {
 	punnyStruct := idna.New()
 	punnyHost, err := punnyStruct.ToASCII(host)
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, state: error determining punnycode for host: %v", host, err)
+		r := pingResp{time.Now(), host, false, "can't determine punnycode for host"}
+		ch <- &r
 		return
 	}
 
 	out, err := exec.Command("ping", punnyHost, "-c4", "-w10").CombinedOutput()
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, state: error checking host: %v: %v", host, string(out), err)
+		r := pingResp{time.Now(), host, false, "error checking host: " + string(out)}
+		ch <- &r
 		return
 	}
 	if strings.Contains(string(out), "Destination Host Unreachable") {
-		ch <- fmt.Sprintf("host: %v, state: offline", host)
+		r := pingResp{time.Now(), host, false, "offline"}
+		ch <- &r
 	} else {
-		ch <- fmt.Sprintf("host: %v, state: online", host)
+		r := pingResp{time.Now(), host, true, "online"}
+		ch <- &r
 	}
 }

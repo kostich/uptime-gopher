@@ -98,7 +98,7 @@ func main() {
 
 	// check web capabilities, ping, ports and keywords
 	webget := make(chan string)
-	ping := make(chan string)
+	ping := make(chan *pingResp)
 	ports := make(chan string)
 	keywords := make(chan string)
 	for _, h := range hosts {
@@ -133,7 +133,9 @@ func main() {
 
 	for _, h := range hosts {
 		if h.Ping {
-			fmt.Printf("[ PING ] %s\n", <-ping)
+			r := <-ping
+			logPing(&dbConf, r)
+			fmt.Printf("[ PING ] time: %v, host: %v, state: %v, comment: %v\n", r.datetime, r.host, r.state, r.comment)
 		}
 	}
 

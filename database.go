@@ -114,8 +114,21 @@ func createTables(params *dbParams) error {
 }
 
 // Logs the data about the ping check to the database.
-func logPing() {
-	return
+func logPing(params *dbParams, data *pingResp) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	nr := pingsTable{Datetime: data.datetime, Host: data.host,
+		State: data.state, Comment: data.comment}
+	db.Create(&nr)
+
+	return nil
 }
 
 // Logs the data about the keyword check to the database.
