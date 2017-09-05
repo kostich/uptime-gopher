@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -17,8 +17,39 @@ type dbParams struct {
 	Port     int    `json:"port"`
 }
 
-// Checks if it's possible to establish connection to the database with
-// parameters defined in conf.json file.
+type keywordsTable struct {
+	ID       uint
+	Datetime time.Time
+	Host     string
+	Keyword  string
+	State    bool
+}
+
+type pingsTable struct {
+	ID       uint
+	Datetime time.Time
+	Host     string
+	State    bool
+	Comment  string
+}
+
+type portsTable struct {
+	ID       uint
+	Datetime time.Time
+	Host     string
+	Port     int
+	state    bool
+}
+
+type webRequestsTable struct {
+	ID          uint
+	Datetime    time.Time
+	Host        string
+	DesiredResp int
+	ActualResp  int
+	Comment     string
+}
+
 func checkDbConn(params *dbParams) error {
 	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
 		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
@@ -48,36 +79,13 @@ func checkTables(params *dbParams) error {
 	}
 	defer db.Close()
 
-	stmt := "SHOW TABLE STATUS FROM `" + params.Name + "`;"
-	rows, err := db.Raw(stmt).Rows()
-	defer rows.Close()
-
-	// will store all results from the statement above
-	type tablesResult struct {
-		name, engine string
-		version      int
-		rowFormat    string
-		rows, avgRowLen, dataLen, maxDataLen,
-		indexLen, dataFree, aInc int64
-		createTime, updTime, checkTime, collation,
-		checksum, creatOptions, comment string
-	}
-
-	// but we just need the names of the tables
-	var tableNames []string
-	for rows.Next() {
-		// SHOW TABLE STATUS returns rows with 18 fields
-		var tables tablesResult
-		rows.Scan(&tables.name, &tables.engine, &tables.version, &tables.rowFormat,
-			&tables.rows, &tables.avgRowLen, &tables.dataLen, &tables.maxDataLen,
-			&tables.indexLen, &tables.dataFree, &tables.aInc, &tables.createTime,
-			&tables.updTime, &tables.checkTime, &tables.collation, &tables.checksum,
-			&tables.creatOptions, &tables.comment)
-		tableNames = append(tableNames, tables.name)
-	}
-
-	requiredTables := []string{"keywords", "pings", "ports", "web_requests"}
-	if !reflect.DeepEqual(tableNames, requiredTables) {
+	if !db.HasTable(&keywordsTable{}) {
+		return fmt.Errorf("required db tables do not exist")
+	} else if !db.HasTable(&pingsTable{}) {
+		return fmt.Errorf("required db tables do not exist")
+	} else if !db.HasTable(&portsTable{}) {
+		return fmt.Errorf("required db tables do not exist")
+	} else if !db.HasTable(&webRequestsTable{}) {
 		return fmt.Errorf("required db tables do not exist")
 	}
 
