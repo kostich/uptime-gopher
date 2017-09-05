@@ -134,7 +134,10 @@ func main() {
 	for _, h := range hosts {
 		if h.Ping {
 			r := <-ping
-			logPing(&dbConf, r)
+			err = logPing(&dbConf, r)
+			if err != nil {
+				fmt.Printf("[ PING ] time: %v, host: %v, state: error: %v\n", r.datetime, r.host, err)
+			}
 			fmt.Printf("[ PING ] time: %v, host: %v, state: %v, comment: %v\n", r.datetime, r.host, r.state, r.comment)
 		}
 	}
