@@ -4,10 +4,19 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
+type fetchResp struct {
+	datetime    time.Time
+	host        string
+	desiredResp int
+	actualResp  int
+	comment     string
+}
+
 // Fetch a given host and return a status based on the response.
-func fetchHost(host string, response int, ch chan<- string) {
+func fetchHost(host string, response int, ch chan<- *fetchResp) {
 	// check for protocol, if not defined, use http
 	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {
 		host = "http://" + host
@@ -15,14 +24,12 @@ func fetchHost(host string, response int, ch chan<- string) {
 
 	resp, err := http.Get(host)
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, state: error: %v", host, err)
+		r := fetchResp{time.Now(), host, response, 0, fmt.Sprintf("error, %v", err)}
+		ch <- &r
 		return
 	}
 	defer resp.Body.Close()
-	status := "OK"
-	if resp.StatusCode != response {
-		status = "NOT OK"
-	}
 
-	ch <- fmt.Sprintf("host: %v, response: %v, state: %v", host, resp.StatusCode, status)
+	r := fetchResp{time.Now(), host, response, resp.StatusCode, ""}
+	ch <- &r
 }

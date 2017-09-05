@@ -169,6 +169,20 @@ func logPort(params *dbParams, data *portResp) error {
 }
 
 // Logs the data about the request check to the database.
-func logRequest() {
-	return
+func logRequest(params *dbParams, data *fetchResp) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	nr := webRequestsTable{Datetime: data.datetime, Host: data.host,
+		DesiredResp: data.desiredResp, ActualResp: data.actualResp,
+		Comment: data.comment}
+	db.Create(&nr)
+
+	return nil
 }

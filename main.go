@@ -97,7 +97,7 @@ func main() {
 	}
 
 	// check web capabilities, ping, ports and keywords
-	webget := make(chan string)
+	webget := make(chan *fetchResp)
 	ping := make(chan *pingResp)
 	ports := make(chan *portResp)
 	keywords := make(chan *keywordResp)
@@ -127,7 +127,14 @@ func main() {
 	// Output the results
 	for _, h := range hosts {
 		if h.HTTP {
-			fmt.Printf("[WEBGET] %s\n", <-webget)
+			r := <-webget
+			err = logRequest(&dbConf, r)
+			if err != nil {
+				fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: error: %v\n",
+					r.datetime, r.host, r.desiredResp, r.actualResp, err)
+			}
+			fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: %v\n",
+				r.datetime, r.host, r.desiredResp, r.actualResp, r.comment)
 		}
 	}
 
