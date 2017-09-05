@@ -124,7 +124,7 @@ func main() {
 		}
 	}
 
-	// Output the results
+	// Log the results to the db and output to stdout only on error
 	for _, h := range hosts {
 		if h.HTTP {
 			r := <-webget
@@ -133,8 +133,6 @@ func main() {
 				fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: error: %v\n",
 					r.datetime, r.host, r.desiredResp, r.actualResp, err)
 			}
-			fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: %v\n",
-				r.datetime, r.host, r.desiredResp, r.actualResp, r.comment)
 		}
 	}
 
@@ -145,7 +143,6 @@ func main() {
 			if err != nil {
 				fmt.Printf("[ PING ] time: %v, host: %v, state: error: %v\n", r.datetime, r.host, err)
 			}
-			fmt.Printf("[ PING ] time: %v, host: %v, state: %v, comment: %v\n", r.datetime, r.host, r.state, r.comment)
 		}
 	}
 
@@ -158,7 +155,6 @@ func main() {
 					fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: error: %v\n",
 						r.datetime, r.host, r.port, err)
 				}
-				fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: %v\n", r.datetime, r.host, r.port, r.comment)
 			}
 		}
 	}
@@ -172,8 +168,6 @@ func main() {
 					fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: error: %v\n",
 						r.datetime, r.host, r.keyword, err)
 				}
-				fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: %v, comment: %v\n",
-					r.datetime, r.host, r.keyword, r.state, r.comment)
 			}
 		}
 	}
