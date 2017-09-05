@@ -134,8 +134,21 @@ func logPing(params *dbParams, data *pingResp) error {
 }
 
 // Logs the data about the keyword check to the database.
-func logKeyword() {
-	return
+func logKeyword(params *dbParams, data *keywordResp) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	nr := keywordsTable{Datetime: data.datetime, Host: data.host,
+		Keyword: data.keyword, State: data.state, Comment: data.comment}
+	db.Create(&nr)
+
+	return nil
 }
 
 // Logs the data about the port check to the database.

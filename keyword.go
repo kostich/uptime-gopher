@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 )
 
+type keywordResp struct {
+	datetime time.Time
+	host     string
+	keyword  string
+	state    bool
+	comment  string
+}
+
 // Checks if a HTML page on a given post contains <meta name="keywords"> with
 // content which contains keyword.
-func keywordHost(host, keyword string, ch chan<- string) {
+func keywordHost(host, keyword string, ch chan<- *keywordResp) {
 	// check for protocol, if not defined use http
 	if !strings.HasPrefix(host, "http://") && !strings.HasPrefix(host, "https://") {
 		host = "http://" + host
@@ -19,7 +28,8 @@ func keywordHost(host, keyword string, ch chan<- string) {
 	keywordFound := false
 	resp, err := http.Get(host)
 	if err != nil {
-		ch <- fmt.Sprintf("host: %v, keyword: %v, state: error: %v", host, keyword, err)
+		r := keywordResp{time.Now(), host, keyword, keywordFound, fmt.Sprintf("%v", err)}
+		ch <- &r
 		return
 	}
 	defer resp.Body.Close()
@@ -41,5 +51,6 @@ func keywordHost(host, keyword string, ch chan<- string) {
 		tt = tzr.Next()
 	}
 
-	ch <- fmt.Sprintf("host: %v, keyword: %v, state: %v", host, keyword, keywordFound)
+	r := keywordResp{time.Now(), host, keyword, keywordFound, ""}
+	ch <- &r
 }

@@ -100,7 +100,7 @@ func main() {
 	webget := make(chan string)
 	ping := make(chan *pingResp)
 	ports := make(chan string)
-	keywords := make(chan string)
+	keywords := make(chan *keywordResp)
 	for _, h := range hosts {
 		if h.Ping {
 			go pingHost(h.Name, ping)
@@ -153,7 +153,14 @@ func main() {
 	for _, h := range hosts {
 		if len(h.Keywords) != 0 {
 			for i := len(h.Keywords); i > 0; i-- {
-				fmt.Printf("[KEYWRD] %s\n", <-keywords)
+				r := <-keywords
+				err = logKeyword(&dbConf, r)
+				if err != nil {
+					fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: error: %v\n",
+						r.datetime, r.host, r.keyword, err)
+				}
+				fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: %v, comment: %v\n",
+					r.datetime, r.host, r.keyword, r.state, r.comment)
 			}
 		}
 	}
