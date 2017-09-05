@@ -95,8 +95,22 @@ func checkTables(params *dbParams) error {
 }
 
 // Creates required tables in the database.
-func createTables() {
-	return
+func createTables(params *dbParams) error {
+	dsn := params.User + ":" + params.Password + "@tcp(" + params.Host + ":" +
+		strconv.Itoa(params.Port) + ")/" + params.Name + "?charset=utf8&parseTime=True&loc=Local"
+
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("can't get db handle: %v", err)
+	}
+	defer db.Close()
+
+	db.CreateTable(&keywordsTable{})
+	db.CreateTable(&pingsTable{})
+	db.CreateTable(&portsTable{})
+	db.CreateTable(&webRequestsTable{})
+
+	return nil
 }
 
 // Logs the data about the ping check to the database.
