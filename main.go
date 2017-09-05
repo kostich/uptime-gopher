@@ -92,7 +92,8 @@ func main() {
 	err = checkTables(&dbConf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uptime-gopher: error checking tables: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stdout, "uptime-gopher: creating required tables\n")
+		createTables(&dbConf)
 	}
 
 	// check web capabilities, ping, ports and keywords
