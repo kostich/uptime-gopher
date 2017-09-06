@@ -10,11 +10,13 @@ import (
 )
 
 type dbParams struct {
-	Host     string `json:"host"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Port     int    `json:"port"`
+	Host        string `json:"host"`
+	User        string `json:"user"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	Port        int    `json:"port"`
+	LogToDB     bool   `json:"log-to-db"`
+	LogToStdOut bool   `json:"log-to-stdout"`
 }
 
 type keywordsTable struct {

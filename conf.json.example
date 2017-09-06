@@ -3,5 +3,7 @@
         "user": "",
 		"password": "",
 		"name": "",
-		"port": 3306
+		"port": 3306,
+		"log-to-db": false,
+		"log-to-stdout": true
 }

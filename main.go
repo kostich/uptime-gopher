@@ -81,19 +81,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check database connection
-	err = checkDbConn(&dbConf)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "uptime-gopher: error connecting to db: %v\n", err)
+	// We need to log to at least something
+	if dbConf.LogToDB == false && dbConf.LogToStdOut == false {
+		fmt.Fprintf(os.Stderr, "uptime-gopher: conf.json: log-to-db or log-to-stdout must be set to true\n")
 		os.Exit(1)
 	}
 
-	// Check if tables exist in the db
-	err = checkTables(&dbConf)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "uptime-gopher: error checking tables: %v\n", err)
-		fmt.Fprintf(os.Stdout, "uptime-gopher: creating required tables\n")
-		createTables(&dbConf)
+	// Check database connection, if user wants to log results to db
+	if dbConf.LogToDB {
+		err = checkDbConn(&dbConf)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "uptime-gopher: error connecting to db: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Check if tables exist in the db
+		err = checkTables(&dbConf)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "uptime-gopher: error checking tables: %v\n", err)
+			fmt.Fprintf(os.Stdout, "uptime-gopher: creating required tables\n")
+			createTables(&dbConf)
+		}
 	}
 
 	// check web capabilities, ping, ports and keywords
@@ -124,14 +132,21 @@ func main() {
 		}
 	}
 
-	// Log the results to the db and output to stdout only on error
+	// Get the results and log them to the db and/or output to stdout
+	// depending on how the user configured the program
 	for _, h := range hosts {
 		if h.HTTP {
 			r := <-webget
-			err = logRequest(&dbConf, r)
-			if err != nil {
-				fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: error: %v\n",
-					r.datetime, r.host, r.desiredResp, r.actualResp, err)
+			if dbConf.LogToDB {
+				err = logRequest(&dbConf, r)
+				if err != nil {
+					fmt.Printf("[WEBGET] time: %v, host: %v, desired response: %v, actual response: %v, comment: error: %v\n",
+						r.datetime, r.host, r.desiredResp, r.actualResp, err)
+				}
+			}
+			if dbConf.LogToStdOut {
+				fmt.Printf("[WEBGET] host: %v, desired response: %v, actual response: %v, comment: \"%v\"\n",
+					r.host, r.desiredResp, r.actualResp, r.comment)
 			}
 		}
 	}
@@ -139,9 +154,16 @@ func main() {
 	for _, h := range hosts {
 		if h.Ping {
 			r := <-ping
-			err = logPing(&dbConf, r)
-			if err != nil {
-				fmt.Printf("[ PING ] time: %v, host: %v, state: error: %v\n", r.datetime, r.host, err)
+			if dbConf.LogToDB {
+				err = logPing(&dbConf, r)
+				if err != nil {
+					fmt.Printf("[ PING ] time: %v, host: %v, state: error: %v\n",
+						r.datetime, r.host, err)
+				}
+			}
+			if dbConf.LogToStdOut {
+				fmt.Printf("[ PING ] host: %v, state: %v, comment: \"%v\"\n",
+					r.host, r.state, r.comment)
 			}
 		}
 	}
@@ -150,10 +172,16 @@ func main() {
 		if len(h.Ports) != 0 {
 			for i := len(h.Ports); i > 0; i-- {
 				r := <-ports
-				err = logPort(&dbConf, r)
-				if err != nil {
-					fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: error: %v\n",
-						r.datetime, r.host, r.port, err)
+				if dbConf.LogToDB {
+					err = logPort(&dbConf, r)
+					if err != nil {
+						fmt.Printf("[ PORT ] time: %v, host: %v, port: %v, state: error: %v\n",
+							r.datetime, r.host, r.port, err)
+					}
+				}
+				if dbConf.LogToStdOut {
+					fmt.Printf("[ PORT ] host: %v, port: %v, state: %v\n",
+						r.host, r.port, r.comment)
 				}
 			}
 		}
@@ -163,10 +191,16 @@ func main() {
 		if len(h.Keywords) != 0 {
 			for i := len(h.Keywords); i > 0; i-- {
 				r := <-keywords
-				err = logKeyword(&dbConf, r)
-				if err != nil {
-					fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: error: %v\n",
-						r.datetime, r.host, r.keyword, err)
+				if dbConf.LogToDB {
+					err = logKeyword(&dbConf, r)
+					if err != nil {
+						fmt.Printf("[KEYWRD] time: %v, host: %v, keyword: %v, state: error: %v\n",
+							r.datetime, r.host, r.keyword, err)
+					}
+				}
+				if dbConf.LogToStdOut {
+					fmt.Printf("[KEYWRD] host: %v, keyword: %v, state: %v, comment: \"%v\"\n",
+						r.host, r.keyword, r.state, r.comment)
 				}
 			}
 		}
